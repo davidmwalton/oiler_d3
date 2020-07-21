@@ -59,12 +59,11 @@ const height = 2000
 //})();
 
 
-//countries110 = d3.json("./countries-110m.json")
-//    .then(
-//        world => topojson.feature(world, world.objects.countries)
-//    )
+countries110 = d3.json("./countries-110m.json")
+    .then(
+        world => topojson.feature(world, world.objects.countries)
+    )
 
-{const countries110 = await d3.json("./countries-110m.json"); }
 
 //countries110 = {
 //    "type": "FeatureCollection",
