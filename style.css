@@ -1,0 +1,36 @@
+body {
+    background: #fcfcfa;
+}
+
+.stroke {
+    fill: none;
+    stroke: #000;
+    stroke-width: 1px;
+}
+
+.fill {
+    fill: #f2f2f2;
+}
+
+.graticule {
+    fill: none;
+    stroke: #777;
+    stroke-width: .5px;
+    stroke-opacity: .5;
+}
+
+.countries {
+    fill: darkgrey;
+}
+
+.boundary {
+    fill: none;
+    stroke: #fff;
+    stroke-width: .5px;
+}
+
+#buttons {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
