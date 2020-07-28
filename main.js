@@ -1,82 +1,101 @@
 (function () {
     'use strict';
-    
-    const WIDTH = 2000;
-    const HEIGHT = 2000;
 
-    let projection = d3["geoOrthographic"]().precision(0.1);
-    let sphere = {type: "Sphere"};
+    const WIDTH = 1000;
+    const HEIGHT = 1000;
+
+    var projection = d3["geoOrthographic"]()
+        .precision(0.05)
+        .rotate([-88.5, -34, 0])
+        .scale(500)
+        .translate([500, 500])
+        ;
+
+    let sphere = { type: "Sphere" };
     let graticule = d3.geoGraticule10()
 
+    var canvas = d3.select("canvas"),
+        width = canvas.property("width"),
+        height = canvas.property("height"),
+        context = canvas.node().getContext("2d");
+
+
+    var path = d3.geoPath()
+        .projection(projection)
+        .context(context);
+
+
+
     function attachEventListeners() {
-        let drawStatesButton = document.getElementById('draw-states');
-        let drawCountriesButton = document.getElementById('draw-countries');
-
-        drawStatesButton.addEventListener('click', drawStates);
-        drawCountriesButton.addEventListener('click', drawCountries);
+        let drawBlocksButton = document.getElementById('draw-blocks')
+        drawBlocksButton.addEventListener('click', drawBlocks)
     }
 
-    function drawStates() {
-        let republicanStatesPath = "./republican-states.json";
 
-        d3.json(republicanStatesPath)
+    function drawBlocks() {
+        let blocks_path = "./chn_blocks_simp_.geojson"
+
+        d3.json(blocks_path)
             .then(
-                drawChart
-            );
-    }
+                function (geodata) {
+                    geodata.features.forEach(function (d, i) {
+                        d.geometry.coordinates.forEach(function (ring) {
+                            ring.reverse();
+                        });
+                    });
+                    drawChart(geodata);
+                });
+    };
 
-    function drawCountries() {
-        let countriesFilePath = "./countries-110m.json";
 
-        d3.json(countriesFilePath)
-            .then(
-                countriesData => {
-                    let geoJsonData = topojson.feature(countriesData, countriesData.objects.countries);
-                    drawChart(geoJsonData);
-                }
-            );
-    }
+    function drawChart(geodata) {
 
-    function drawChart(countries110) {
-        let canvas = document.getElementById('canvas');
-        let context = canvas.getContext('2d')
-        
-        let path = d3.geoPath(projection, context);
-        
-        function render(countries) {
+        function render(geodata) {
             context.clearRect(0, 0, WIDTH, HEIGHT);
+            context.globalAlpha = 0.5;
             context.beginPath(), path(sphere), context.fillStyle = "#fff", context.fill();
             context.beginPath(), path(graticule), context.strokeStyle = "#ccc", context.stroke();
-            context.beginPath(), path(countries), context.fillStyle = "#ff0000", context.fill();
             context.beginPath(), path(sphere), context.stroke();
+
+
+            geodata.features.forEach(function (d, i) {
+                context.beginPath(), path(d), context.fillStyle = d.properties.color, context.fill();
+                context.beginPath(), path(d), context.strokeStyle = d.properties.color, context.stroke();
+            });
         }
-        
+
         return d3.select(context.canvas)
-                    .call(drag(projection)
-                            .on("drag.render", () => render(countries110))
-                    )
-                    .call(() => render(countries110))
-                    .node();
+            .call(zoom(projection)
+                .on("zoom.render", () => render(geodata))
+            )
+            .call(() => render(geodata))
+            .node();
     }
 
-    function drag(projection) {
-        let v0, q0, r0;
-        
-        function dragstarted() {
-            v0 = versor.cartesian(projection.invert([d3.event.x, d3.event.y]));
-            q0 = versor(r0 = projection.rotate());
+
+    function zoom(projection) {
+        let v0, r0, q0;
+
+        function zoomstarted() {
+            v0 = versor.cartesian(projection.invert(d3.mouse(this)));
+            r0 = projection.rotate();
+            q0 = versor(r0);
         }
-        
-        function dragged() {
-            let v1 = versor.cartesian(projection.rotate(r0).invert([d3.event.x, d3.event.y]));
-            let q1 = versor.multiply(q0, versor.delta(v0, v1));
-            projection.rotate(versor.rotation(q1));
+
+        function zoomed() {
+            projection.scale(d3.event.transform.k * (height - 10) / 2);
+
+            var v1 = versor.cartesian(projection.rotate(r0).invert(d3.mouse(this))),
+                q1 = versor.multiply(q0, versor.delta(v0, v1)),
+                r1 = versor.rotation(q1);
+            projection.rotate(r1);
         }
-        
-        return d3.drag()
-                    .on("start", dragstarted)
-                    .on("drag", dragged);
+
+        return d3.zoom()
+            .on("start", zoomstarted)
+            .on("zoom", zoomed)
     }
+
 
     attachEventListeners();
 })();
