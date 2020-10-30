@@ -6,12 +6,32 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 
+<!--
+<style>
+    #range {
+        transform: rotateY(180)
+    }
+</style>
+-->
+
 <body>
     <canvas id="canvas" width="1000" height="1000"></canvas>
 
     <div id="buttons">
         <button id="draw-blocks">Draw Blocks</button>
+        </br>
+        <input type="range" min="-5" max="5" value="0" step="0.5" id="time_slider" style="transform: rotateY(180deg)"
+            onchange="time_val.value=value" />
+        <output type="text" id="time_val" value=""></output>
     </div>
+
+    <script>
+        function showTimeVal(val) {
+            document.getElementById('time_slider').value = val;
+        }
+
+
+    </script>
 
     <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
     <script type="text/javascript" src="https://unpkg.com/versor"></script>
